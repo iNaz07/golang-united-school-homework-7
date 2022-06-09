@@ -1,7 +1,13 @@
 package coverage
 
 import (
+	"errors"
+	"github.com/stretchr/testify/assert"
 	"os"
+	"reflect"
+	"strconv"
+	"testing"
+	"time"
 )
 
 // DO NOT EDIT THIS FUNCTION
@@ -18,3 +24,245 @@ func init() {
 
 // WRITE YOUR CODE BELOW
 
+func TestLen(t *testing.T) {
+	person1 := Person{
+		firstName: "Naz",
+		lastName:  "Naz",
+		birthDay:  time.Now(),
+	}
+
+	person2 := Person{
+		firstName: "Rus",
+		lastName:  "Rus",
+		birthDay:  time.Now(),
+	}
+	person3 := Person{
+		firstName: "Zhadr",
+		lastName:  "Zhadr",
+		birthDay:  time.Now(),
+	}
+	var (
+		people1 People
+		people2 People
+		people3 People
+	)
+	people1 = []Person{person1}
+	people2 = []Person{person1, person2}
+	people3 = []Person{person1, person2, person3}
+
+	assert.Equal(t, 1, people1.Len(), "len is 1")
+	assert.Equal(t, 2, people2.Len(), "len is 2")
+	assert.Equal(t, 3, people3.Len(), "len is 3")
+
+}
+
+func TestLess(t *testing.T) {
+	bday1, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
+	bday2, _ := time.Parse("2006-Jan-02", "2020-Feb-03")
+	bday3, _ := time.Parse("2006-Jan-02", "2001-Feb-03")
+
+	person1 := Person{
+		firstName: "Naz",
+		lastName:  "Naz",
+		birthDay:  bday1,
+	}
+
+	person2 := Person{
+		firstName: "Rus",
+		lastName:  "Rus",
+		birthDay:  bday2,
+	}
+	person3 := Person{
+		firstName: "Zhadr",
+		lastName:  "Zhadr",
+		birthDay:  bday3,
+	}
+	person4 := Person{
+		firstName: "Ali",
+		lastName:  "Ali",
+		birthDay:  bday3,
+	}
+
+	var people People
+	people = []Person{person1, person2, person3, person4}
+
+	assert.Equal(t, false, people.Less(2, 0), "2 is less than 0")
+	assert.Equal(t, false, people.Less(0, 1), "0 is less than 1")
+	assert.Equal(t, false, people.Less(2, 3), "2 is equal to 3")
+	assert.Equal(t, true, people.Less(1, 3), "2 is equal to 3")
+}
+
+func TestSwap(t *testing.T) {
+	bday1, _ := time.Parse("2006-Jan-02", "2013-Feb-03")
+	bday2, _ := time.Parse("2006-Jan-02", "2020-Feb-03")
+	bday3, _ := time.Parse("2006-Jan-02", "2001-Feb-03")
+
+	person1 := Person{
+		firstName: "Naz",
+		lastName:  "Naz",
+		birthDay:  bday1,
+	}
+
+	person2 := Person{
+		firstName: "Rus",
+		lastName:  "Rus",
+		birthDay:  bday2,
+	}
+	person3 := Person{
+		firstName: "Zhadr",
+		lastName:  "Zhadr",
+		birthDay:  bday3,
+	}
+	person4 := Person{
+		firstName: "Ali",
+		lastName:  "Ali",
+		birthDay:  bday3,
+	}
+
+	var (
+		people    People
+		peopleEx  People
+		people2   People
+		people2Ex People
+	)
+
+	people = []Person{person1, person2, person3, person4}
+	peopleEx = []Person{person2, person1, person3, person4}
+	people2 = []Person{person2, person1, person3, person4}
+	people2Ex = []Person{person2, person1, person4, person3}
+
+	tData := []struct {
+		i, j     int
+		init     People
+		Expected People
+		Err      error
+	}{
+		{i: 0, j: 1, init: people, Expected: peopleEx},
+		{i: 2, j: 3, init: people2, Expected: people2Ex},
+	}
+	for _, v := range tData {
+		v.init.Swap(v.i, v.j)
+		if !reflect.DeepEqual(v.init, v.Expected) {
+			t.Errorf("array doesn't swap correctly: got %v want %v", v.init, v.Expected)
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func TestNew(t *testing.T) {
+	m1 := Matrix{
+		rows: 3,
+		cols: 3,
+		data: []int{0, 0, 0, 1, 1, 1, 2, 2, 2},
+	}
+
+	//var ErrRows = errors.New("Rows need to be the same length")
+
+	tData := []struct {
+		str      string
+		Expected *Matrix
+		Err      error
+	}{
+		{str: "0 0 0\n1 1 1\n2 2 2", Expected: &m1, Err: nil},
+		{str: "000\n111\n22h", Expected: nil, Err: strconv.ErrSyntax},
+		//{str: "0 0\n1 1 1\n2 2 2", Expected: nil, Err: fmt.Errorf("%w", ErrRows)},
+	}
+
+	for _, v := range tData {
+		matrix, err := New(v.str)
+		if !errors.Is(err, v.Err) {
+			t.Errorf("create new matrix error: got %v want %v", err, v.Err)
+			return
+		}
+		if !reflect.DeepEqual(matrix, v.Expected) {
+			t.Errorf("created matrix incorrect: got %v want %v", *matrix, v.Expected)
+		}
+	}
+}
+
+func TestRows(t *testing.T) {
+
+	m1 := Matrix{
+		rows: 3,
+		cols: 3,
+		data: []int{0, 0, 0, 1, 1, 1, 2, 2, 2},
+	}
+	m2 := Matrix{
+		rows: 2,
+		cols: 5,
+		data: []int{1, 1, 1, 1, 1, 5, 5, 5, 5, 5},
+	}
+	tData := []struct {
+		matrix   Matrix
+		Expected [][]int
+	}{
+		{matrix: m1, Expected: [][]int{{0, 0, 0}, {1, 1, 1}, {2, 2, 2}}},
+		{matrix: m2, Expected: [][]int{{1, 1, 1, 1, 1}, {5, 5, 5, 5, 5}}},
+	}
+
+	for _, v := range tData {
+		res := v.matrix.Rows()
+
+		if !reflect.DeepEqual(v.Expected, res) {
+			t.Errorf("incorrect rows: got %v want %v", res, v.Expected)
+		}
+	}
+}
+
+func TestCols(t *testing.T) {
+	m1 := Matrix{
+		rows: 3,
+		cols: 3,
+		data: []int{0, 0, 0, 1, 1, 1, 2, 2, 2},
+	}
+	m2 := Matrix{
+		rows: 2,
+		cols: 5,
+		data: []int{1, 1, 1, 1, 1, 5, 5, 5, 5, 5},
+	}
+	tData := []struct {
+		matrix   Matrix
+		Expected [][]int
+	}{
+		{matrix: m1, Expected: [][]int{{0, 1, 2}, {0, 1, 2}, {0, 1, 2}}},
+		{matrix: m2, Expected: [][]int{{1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}}},
+	}
+
+	for _, v := range tData {
+		res := v.matrix.Cols()
+
+		if !reflect.DeepEqual(v.Expected, res) {
+			t.Errorf("incorrect cols: got %v want %v", res, v.Expected)
+		}
+	}
+}
+
+func TestSet(t *testing.T) {
+	m1 := Matrix{
+		rows: 3,
+		cols: 3,
+		data: []int{0, 0, 0, 1, 1, 1, 2, 2, 2},
+	}
+	m2 := Matrix{
+		rows: 2,
+		cols: 5,
+		data: []int{1, 1, 1, 1, 1, 5, 5, 5, 5, 5},
+	}
+	tData := []struct {
+		matrix        *Matrix
+		row, col, val int
+		Expected      bool
+	}{
+		{matrix: &m1, row: 2, col: 2, val: 10, Expected: true},
+		{matrix: &m2, row: -2, col: 2, val: 10, Expected: false},
+	}
+
+	for _, v := range tData {
+		res := v.matrix.Set(v.row, v.col, v.val)
+
+		if res != v.Expected {
+			t.Errorf("set failed: got %v want %v", res, v.Expected)
+		}
+	}
+}
