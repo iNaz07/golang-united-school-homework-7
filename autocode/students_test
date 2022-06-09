@@ -166,12 +166,12 @@ func TestNew(t *testing.T) {
 	}{
 		{str: "0 0 0\n1 1 1\n2 2 2", Expected: &m1, Err: nil},
 		{str: "000\n111\n22h", Expected: nil, Err: strconv.ErrSyntax},
-		//{str: "0 0\n1 1 1\n2 2 2", Expected: nil, Err: fmt.Errorf("%w", ErrRows)},
+		//{str: "0 0\n1 1 1\n2 2 2", Expected: nil, Err: fmt.Errorf("Rows need to be the same length")},
 	}
 
 	for _, v := range tData {
 		matrix, err := New(v.str)
-		if !errors.Is(err, v.Err) {
+		if !errors.Is(err, v.Err) || (err != nil && err.Error() == v.Err.Error()) {
 			t.Errorf("create new matrix error: got %v want %v", err, v.Err)
 			return
 		}
